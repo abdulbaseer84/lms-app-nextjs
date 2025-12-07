@@ -5,35 +5,28 @@ export function middleware(request) {
   const token = request.cookies.get("token")?.value;
   const path = request.nextUrl.pathname;
 
-  // Public paths
+  // Public paths (no token required) 
   if (path.startsWith("/auth")) {
     return NextResponse.next();
   }
-
-  // No token = block dashboard
+  // No token = block dashboard 
   if (!token) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
-
-  // Verify token
+  // Verify token 
   const user = verifyToken(token);
   if (!user) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
-
-  // ADMIN ROUTES
+  // ADMIN ROUTES 
   if (path.startsWith("/dashboard/admin") && user.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
-
-  // INSTRUCTOR ROUTES
+  // INSTRUCTOR ROUTES 
   if (path.startsWith("/dashboard/instructor") && !["admin", "instructor"].includes(user.role)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  return NextResponse.next();
+  } return NextResponse.next();
 }
-
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: [],
 };

@@ -1,4 +1,5 @@
 "use client";
+
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,8 +9,8 @@ export default function Login() {
     email: "",
     password: "",
   });
-  const router = useRouter();
 
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
 

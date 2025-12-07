@@ -10,6 +10,7 @@ export async function POST(request) {
 
     const { email, password } = await request.json();
 
+    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json(
@@ -18,6 +19,7 @@ export async function POST(request) {
       );
     }
 
+    // Compare password
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return NextResponse.json(
@@ -26,28 +28,28 @@ export async function POST(request) {
       );
     }
 
-    // generate JWT
-    const token = generateToken({
-      id: user._id.toString(),
-      role: user.role,
-    });
+    // Generate token
+    const token = generateToken(user);
 
-    // Create response
-    const response = NextResponse.json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        role: user.role,
-      },
-    });
+    // Prepare response
+    const response = NextResponse.json(
+      {
+        message: "Login successful",
+        user: {
+          id: user._id,
+          name: user.name,
+          role: user.role,
+        },
+      }
+    );
 
-    // Set cookie (secure = true on production)
+    // Set cookie
     response.cookies.set("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // IMPORTANT FIX
-      sameSite: "lax",
       path: "/",
+      sameSite: "lax",
+      secure: false, // keep false in localhost (must enable true in production with https)
+      maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
     return response;
@@ -55,7 +57,7 @@ export async function POST(request) {
     console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "Server error. Please try again." },
       { status: 500 }
     );
   }
