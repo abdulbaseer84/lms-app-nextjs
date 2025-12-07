@@ -6,7 +6,7 @@ export function middleware(request) {
   const path = request.nextUrl.pathname;
 
   // Public paths (no token required) 
-  if (path.startsWith("/auth")) {
+  if (path.startsWith("/")) {
     return NextResponse.next();
   }
   // No token = block dashboard 
