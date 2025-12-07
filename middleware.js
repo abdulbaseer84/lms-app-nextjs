@@ -5,7 +5,7 @@ export function middleware(request) {
   const token = request.cookies.get("token")?.value;
   const path = request.nextUrl.pathname;
 
-  // Public paths (no token required)
+  // Public paths
   if (path.startsWith("/auth")) {
     return NextResponse.next();
   }
@@ -35,5 +35,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: [],
+  matcher: ["/dashboard/:path*"],
 };
