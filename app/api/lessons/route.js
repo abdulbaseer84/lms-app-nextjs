@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Lesson from "@/models/Lesson";
 import { dbConnect } from "@/lib/dbConnect";
 
-/* GET LESSONS */
+/* GET ALL LESSONS */
 export async function GET(request) {
   await dbConnect();
 
@@ -16,15 +16,19 @@ export async function GET(request) {
 export async function POST(request) {
   await dbConnect();
 
-  const body = await request.json();
+  const data = await request.json();
 
   const lesson = await Lesson.create({
-    title: body.title,
-    courseId: body.courseId,
-    videoUrl: body.videoUrl || "",
-    duration: body.duration || "",
-    description: body.description || "",
-    subtopics: body.subtopics || [],
+    courseId: data.courseId,
+    title: data.title,
+    videoUrl: data.videoUrl || "",
+    duration: data.duration || "",
+    description: data.description || "",
+    subtopics: Array.isArray(data.subtopics)
+      ? data.subtopics.map((s) =>
+          typeof s === "string" ? { title: s, videoUrl: "" } : s
+        )
+      : [],
   });
 
   return NextResponse.json({ lesson });
@@ -36,12 +40,10 @@ export async function PUT(request) {
 
   let body = await request.json();
 
-  // fix subtopics (convert string → object)
+  // convert string → object if needed
   if (Array.isArray(body.subtopics)) {
     body.subtopics = body.subtopics.map((s) =>
-      typeof s === "string"
-        ? { title: s, videoUrl: "" }
-        : s
+      typeof s === "string" ? { title: s, videoUrl: "" } : s
     );
   }
 

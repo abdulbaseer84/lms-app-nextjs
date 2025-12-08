@@ -1,15 +1,23 @@
 import mongoose from "mongoose";
 
-const lessonSchema = new mongoose.Schema(
+const LessonSchema = new mongoose.Schema(
   {
-    course: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
+    courseId: { type: String, required: true },
+
     title: { type: String, required: true },
-    content: { type: String },
-    videoUrl: { type: String },
-    position: { type: Number, default: 0 }, // sorting order
+    videoUrl: { type: String, default: "" },
+    duration: { type: String, default: "" },
+    description: { type: String, default: "" },
+
+    // Subtopics are objects
+    subtopics: [
+      {
+        title: { type: String, required: true },
+        videoUrl: { type: String, default: "" }
+      }
+    ],
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Lesson ||
-  mongoose.model("Lesson", lessonSchema);
+export default mongoose.models.Lesson || mongoose.model("Lesson", LessonSchema);

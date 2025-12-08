@@ -4,8 +4,13 @@ import Lesson from "@/models/Lesson";
 import Course from "@/models/Course";
 import { verifyToken } from "@/utils/jwt";
 
-export async function POST(request, { params }) {
+// -----------------------------------------------------
+// ADD LESSON
+// -----------------------------------------------------
+export async function POST(request, context) {
   await dbConnect();
+
+  const { courseId } = await context.params; // FIXED
 
   const token = request.cookies.get("token")?.value;
   const user = verifyToken(token);
@@ -14,32 +19,38 @@ export async function POST(request, { params }) {
     return NextResponse.json({ message: "Not allowed" }, { status: 403 });
   }
 
-  const { title, content, videoUrl, position } = await request.json();
+  const { title, videoUrl, duration, description, subtopics } =
+    await request.json();
 
-  const course = await Course.findById(params.courseId);
-
+  const course = await Course.findById(courseId);
   if (!course) return NextResponse.json({ message: "Course not found" });
 
-  // Only course instructor can add lessons
+  // Only instructor OR admin
   if (course.instructor.toString() !== user.id && user.role !== "admin") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
   const lesson = await Lesson.create({
-    course: params.courseId,
+    courseId,
     title,
-    content,
     videoUrl,
-    position,
+    duration,
+    description,
+    subtopics: subtopics || [],
   });
 
   return NextResponse.json({ message: "Lesson added", lesson });
 }
 
-export async function GET(request, { params }) {
+// -----------------------------------------------------
+// GET ALL LESSONS
+// -----------------------------------------------------
+export async function GET(request, context) {
   await dbConnect();
 
-  const lessons = await Lesson.find({ course: params.courseId }).sort("position");
+  const { courseId } = await context.params; // FIXED
+
+  const lessons = await Lesson.find({ courseId }).sort("createdAt");
 
   return NextResponse.json({ lessons });
 }

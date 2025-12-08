@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AdminCourses() {
+  const router = useRouter();
+
   const [courses, setCourses] = useState([]);
   const [filtered, setFiltered] = useState([]);
 
   const [search, setSearch] = useState("");
   const [filterLevel, setFilterLevel] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
-
   const [sortBy, setSortBy] = useState("");
 
   const [editCourse, setEditCourse] = useState(null);
@@ -24,11 +26,9 @@ export default function AdminCourses() {
     thumbnail: "",
   });
 
-  /* ======================================================
-      LOAD COURSES FROM DATABASE
-  ====================================================== */
+  /* LOAD COURSES */
   async function loadCourses() {
-    const res = await fetch("/api/admin/courses", { cache: "no-store" });
+    const res = await fetch("/api/courses", { cache: "no-store" });
     const data = await res.json();
     setCourses(data.courses || []);
     setFiltered(data.courses || []);
@@ -38,47 +38,37 @@ export default function AdminCourses() {
     loadCourses();
   }, []);
 
-  /* ======================================================
-      SEARCH + FILTER + SORT
-  ====================================================== */
+  /* SEARCH + FILTER + SORT */
   useEffect(() => {
     let data = [...courses];
 
-    // Search
     if (search.trim() !== "") {
       data = data.filter((c) =>
         c.title.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Filter by level
     if (filterLevel !== "") {
       data = data.filter((c) => c.level === filterLevel);
     }
 
-    // Filter by category
     if (filterCategory !== "") {
       data = data.filter((c) =>
         c.category?.toLowerCase().includes(filterCategory.toLowerCase())
       );
     }
 
-    // Sorting
     if (sortBy === "price_low") data.sort((a, b) => a.price - b.price);
     if (sortBy === "price_high") data.sort((a, b) => b.price - a.price);
-    if (sortBy === "title_az")
-      data.sort((a, b) => a.title.localeCompare(b.title));
-    if (sortBy === "title_za")
-      data.sort((a, b) => b.title.localeCompare(a.title));
+    if (sortBy === "title_az") data.sort((a, b) => a.title.localeCompare(b.title));
+    if (sortBy === "title_za") data.sort((a, b) => b.title.localeCompare(a.title));
 
     setFiltered(data);
   }, [search, filterLevel, filterCategory, sortBy, courses]);
 
-  /* ======================================================
-      ADD COURSE → REAL DB SAVE
-  ====================================================== */
+  /* ADD COURSE */
   async function handleAddCourse() {
-    const res = await fetch("/api/admin/courses", {
+    const res = await fetch("/api/courses", {
       method: "POST",
       body: JSON.stringify(newCourse),
     });
@@ -96,11 +86,9 @@ export default function AdminCourses() {
     }
   }
 
-  /* ======================================================
-      EDIT COURSE → REAL DB UPDATE
-  ====================================================== */
+  /* EDIT COURSE */
   async function handleSaveEdit() {
-    const res = await fetch("/api/admin/courses", {
+    const res = await fetch("/api/courses", {
       method: "PUT",
       body: JSON.stringify(editCourse),
     });
@@ -111,11 +99,9 @@ export default function AdminCourses() {
     }
   }
 
-  /* ======================================================
-      DELETE COURSE → REAL DB DELETE
-  ====================================================== */
+  /* DELETE COURSE */
   async function handleDelete() {
-    const res = await fetch("/api/admin/courses", {
+    const res = await fetch("/api/courses", {
       method: "DELETE",
       body: JSON.stringify({ id: confirmDelete._id }),
     });
@@ -128,7 +114,7 @@ export default function AdminCourses() {
 
   return (
     <div>
-      {/* HEADER ROW */}
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Manage Courses</h1>
 
@@ -142,7 +128,6 @@ export default function AdminCourses() {
 
       {/* FILTERS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-
         <input
           placeholder="Search course..."
           className="border p-2 rounded"
@@ -181,49 +166,68 @@ export default function AdminCourses() {
         </select>
       </div>
 
-      {/* TABLE */}
-      <table className="w-full bg-white shadow rounded">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-3 text-left">Title</th>
-            <th className="p-3 text-left">Category</th>
-            <th className="p-3 text-left">Level</th>
-            <th className="p-3 text-left">Price</th>
-            <th className="p-3 text-left">Actions</th>
-          </tr>
-        </thead>
+      {/* CARD VIEW */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filtered.map((c) => (
+          <div
+            key={c._id}
+            className="bg-white rounded-xl shadow hover:shadow-lg transition p-4 border"
+          >
+            {c.thumbnail ? (
+              <img
+                src={c.thumbnail}
+                alt={c.title}
+                className="w-full h-40 object-cover rounded-lg mb-3"
+              />
+            ) : (
+              <div className="w-full h-40 bg-gray-200 rounded-lg mb-3 flex items-center justify-center text-gray-500">
+                No Image
+              </div>
+            )}
 
-        <tbody>
-          {filtered.map((c) => (
-            <tr key={c._id} className="border-t">
-              <td className="p-3">{c.title}</td>
-              <td className="p-3">{c.category}</td>
-              <td className="p-3 capitalize">{c.level}</td>
-              <td className="p-3">₹ {c.price}/-</td>
+            <h3 className="text-lg font-semibold">{c.title}</h3>
 
-              <td className="p-3 flex gap-2">
-                <button
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
-                  onClick={() => setEditCourse({ ...c })}
-                >
-                  Edit
-                </button>
+            <p className="text-sm text-gray-600 mt-1">
+              Category: <span className="font-medium">{c.category}</span>
+            </p>
 
-                <button
-                  className="px-3 py-1 bg-red-600 text-white rounded text-sm"
-                  onClick={() => setConfirmDelete(c)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <p className="text-sm text-gray-600">
+              Level: <span className="capitalize font-medium">{c.level}</span>
+            </p>
 
-      {/* ----------------------- MODALS BELOW ----------------------- */}
+            <p className="mt-2 font-bold text-blue-600">₹ {c.price}/-</p>
 
-      {/* ADD COURSE MODAL */}
+            {/* BUTTONS */}
+            <div className="flex flex-col gap-2 mt-4">
+
+              <button
+                className="px-3 py-1 bg-blue-600 text-white rounded text-sm w-full"
+                onClick={() => setEditCourse({ ...c })}
+              >
+                Edit
+              </button>
+
+              <button
+                className="px-3 py-1 bg-red-600 text-white rounded text-sm w-full"
+                onClick={() => setConfirmDelete(c)}
+              >
+                Delete
+              </button>
+
+              {/* NEW — Add Lesson */}
+              <button
+                className="px-3 py-1 bg-green-600 text-white rounded text-sm w-full"
+                onClick={() => router.push(`/dashboard/admin/courses/${c._id}/lessons`)}
+              >
+                + Add Lesson
+              </button>
+
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ADD MODAL */}
       {showAddModal && (
         <AddEditCourseModal
           mode="add"
@@ -258,11 +262,11 @@ export default function AdminCourses() {
 }
 
 /* ----------------------------------------------------
-   REUSABLE ADD / EDIT MODAL COMPONENT
+   ADD / EDIT COURSE MODAL
 ---------------------------------------------------- */
 function AddEditCourseModal({ mode, course, setCourse, close, save }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg w-96">
         <h2 className="text-xl font-bold mb-4">
           {mode === "add" ? "Add New Course" : "Edit Course"}
@@ -301,7 +305,6 @@ function AddEditCourseModal({ mode, course, setCourse, close, save }) {
           className="border p-2 w-full rounded mb-3"
         />
 
-        {/* Thumbnail */}
         <input
           type="file"
           accept="image/*"
@@ -325,7 +328,6 @@ function AddEditCourseModal({ mode, course, setCourse, close, save }) {
           className="border p-2 w-full rounded mb-3"
         />
 
-
         <div className="flex justify-end gap-3 mt-5">
           <button onClick={close} className="px-4 py-2 bg-gray-200 rounded">
             Cancel
@@ -343,7 +345,7 @@ function AddEditCourseModal({ mode, course, setCourse, close, save }) {
 }
 
 /* ----------------------------------------------------
-   DELETE CONFIRMATION MODAL
+   DELETE MODAL
 ---------------------------------------------------- */
 function DeleteModal({ item, close, remove }) {
   return (
