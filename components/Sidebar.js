@@ -87,7 +87,7 @@ export default function Sidebar() {
           {/* INSTRUCTOR LINKS */}
           {user.role === "instructor" && (
             <>
-              <h3 className="mt-4 text-sm text-gray-400">Instructor</h3>
+              <h3 className="mt-3 text-sm text-gray-400">Instructor</h3>
               <Link href="/dashboard/instructor/create-course" onClick={() => setOpen(false)}>
                 Create Course
               </Link>
