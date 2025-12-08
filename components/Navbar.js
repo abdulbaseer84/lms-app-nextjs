@@ -139,6 +139,9 @@ export default function Navbar() {
 
           {!user && (
             <>
+              <Link href="/dashboard" className="hover:text-blue-600">
+                Dashboard
+              </Link>
               <Link
                 href="/auth/login"
                 className="px-4 py-2 bg-blue-600 text-white rounded"
