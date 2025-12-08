@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function CreateCoursePage() {const router = useRouter();
+export default function AdminCourses() {
+  const router = useRouter();
 
   const [courses, setCourses] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -216,7 +217,7 @@ export default function CreateCoursePage() {const router = useRouter();
               {/* NEW — Add Lesson */}
               <button
                 className="px-3 py-1 bg-green-600 text-white rounded text-sm w-full"
-                onClick={() => router.push(`/dashboard/instructor/courses/${c._id}/lessons`)}
+                onClick={() => router.push(`/dashboard/admin/courses/${c._id}/lessons`)}
               >
                 + Add Lesson
               </button>
